@@ -1,0 +1,23 @@
+# Next.js build files
+.next/
+node_modules/
+dist/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database
+dev.db
+*.db
+
+# Local uploads
+public/uploads/
+uploads/
+tmp/
+
+# Editors
+.vscode/
+.idea/
+.DS_Store

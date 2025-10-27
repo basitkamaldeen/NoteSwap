@@ -1,0 +1,49 @@
+{
+  "name": "noteswap",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "fast": "cross-env NEXT_DISABLE_TYPECHECK=1 next dev --turbo"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^5.0.0",
+    "@hookform/resolvers": "^3.3.4",
+    "@prisma/client": "^6.0.0",
+    "@radix-ui/react-icons": "^1.3.2",
+    "@supabase/supabase-js": "^2.76.1",
+    "@tiptap/extension-placeholder": "^3.6.6",
+    "@tiptap/react": "^3.6.6",
+    "@tiptap/starter-kit": "^3.6.6",
+    "clsx": "^2.1.1",
+    "form-data": "^4.0.4",
+    "framer-motion": "^11.18.2",
+    "lucide-react": "^0.474.0",
+    "multer": "^2.0.2",
+    "next-themes": "^0.3.0",
+    "node-fetch": "^2.7.0",
+    "openai": "^6.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^3.4.3",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "cross-env": "^10.1.0",
+    "eslint-config-next": "^14.2.4",
+    "husky": "^9.0.0",
+    "next": "^14.2.4",
+    "postcss": "^8.4.38",
+    "prettier": "^3.3.2",
+    "prisma": "^6.0.0",
+    "typescript": "^5.5.3"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "next.config.mjs", "use": "@vercel/next" }
+  ],
+  "env": {
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "@next_public_clerk_publishable_key",
+    "CLERK_SECRET_KEY": "@clerk_secret_key",
+    "DATABASE_URL": "@database_url",
+    "OPENAI_API_KEY": "@openai_api_key",
+    "HUGGINGFACE_API_KEY": "@huggingface_api_key"
+  }
+}
