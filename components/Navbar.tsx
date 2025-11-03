@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserButton, useUser } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, NotebookPen } from "lucide-react";
+import { Menu, PenTool as NotebookPen, X } from "lucide-react"
+
 
 export default function Navbar() {
   const pathname = usePathname();

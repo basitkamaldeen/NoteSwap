@@ -1,42 +1,18 @@
-import { currentUser } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
-import { redirect } from "next/navigation";
-import NoteEditor from "@/components/note-editor";
-import Navbar from "@/components/navbar";
+import NoteEditor from "@/components/noteEditor";
 
-interface NotePageProps {
-  params: { id: string };
-}
-
-export default async function NotePage({ params }: NotePageProps) {
-  const user = await currentUser();
-  if (!user) redirect("/sign-in");
-
-  let note = await prisma.note.findUnique({
-    where: { id: params.id, userId: user.id },
-  });
-
-  // Create new blank note if user visits /dashboard/new
-  if (!note && params.id === "new") {
-    note = await prisma.note.create({
-      data: {
-        title: "Untitled Note",
-        content: "",
-        userId: user.id,
-        tags: "",
-      },
+export default function DashboardNotePage({ params }: { params: { id: string } }) {
+  const handleSave = async (content: string) => {
+    await fetch(`/api/notes/${params.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content }),
     });
-    redirect(`/dashboard/${note.id}`);
-  }
-
-  if (!note) redirect("/dashboard");
+  };
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <NoteEditor note={note} />
-      </div>
+    <main className="min-h-screen p-6 bg-slate-950 text-white">
+      <h1 className="text-2xl font-semibold mb-4">Edit Note</h1>
+      <NoteEditor noteId={params.id} onSave={handleSave} />
     </main>
   );
 }
