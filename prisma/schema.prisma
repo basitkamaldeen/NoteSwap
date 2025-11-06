@@ -1,23 +1,18 @@
-// -----------------------------
-// Prisma Schema for NoteSwap 2.0
-// -----------------------------
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite" // for local dev; switch to postgresql or mysql later if needed
+  provider = "sqlite"
   url      = "file:./dev.db"
 }
 
-// ------------------------------------------------------------
-// 🧑 USER MODEL
-// ------------------------------------------------------------
 model User {
   id         String         @id @default(cuid())
-  email      String         @unique
   name       String?
+  email      String?        @unique
   avatar     String?
   notes      Note[]         @relation("UserNotes")
   folders    Folder[]       @relation("UserFolders")
@@ -30,100 +25,81 @@ model User {
   updatedAt  DateTime       @updatedAt
 }
 
-// ------------------------------------------------------------
-// 📝 NOTE MODEL
-// ------------------------------------------------------------
+// ✏️ Notes
 model Note {
-  id         String       @id @default(cuid())
-  title      String
-  content    String
-  user       User         @relation("UserNotes", fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
-  folder     Folder?      @relation("FolderNotes", fields: [folderId], references: [id], onDelete: SetNull)
-  folderId   String?
-  isPublic   Boolean      @default(false)
-  likes      Like[]       @relation("NoteLikes")
-  saves      Save[]       @relation("NoteSaves")
-  aiActivity AiActivity[] @relation("NoteAiActivity")
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-}
-
-// ------------------------------------------------------------
-// 📁 FOLDER MODEL
-// ------------------------------------------------------------
-model Folder {
   id        String   @id @default(cuid())
-  name      String
-  user      User     @relation("UserFolders", fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  notes     Note[]   @relation("FolderNotes")
+  title     String
+  content   String?
+  folderId  String?
+  userId    String?
+  user      User?    @relation("UserNotes", fields: [userId], references: [id])
+  folder    Folder?  @relation(fields: [folderId], references: [id])
+  likes     Like[]
+  saves     Save[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// ------------------------------------------------------------
-// ❤️ LIKE MODEL
-// ------------------------------------------------------------
+// 📁 Folders
+model Folder {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String?
+  user      User?    @relation("UserFolders", fields: [userId], references: [id])
+  notes     Note[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ❤️ Likes
 model Like {
   id        String   @id @default(cuid())
-  user      User     @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  note      Note     @relation("NoteLikes", fields: [noteId], references: [id], onDelete: Cascade)
-  noteId    String
+  userId    String?
+  noteId    String?
+  user      User?    @relation("UserLikes", fields: [userId], references: [id])
+  note      Note?    @relation(fields: [noteId], references: [id])
   createdAt DateTime @default(now())
 }
 
-// ------------------------------------------------------------
-// 💾 SAVE MODEL
-// ------------------------------------------------------------
+// 💾 Saves
 model Save {
   id        String   @id @default(cuid())
-  user      User     @relation("UserSaves", fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  note      Note     @relation("NoteSaves", fields: [noteId], references: [id], onDelete: Cascade)
-  noteId    String
+  userId    String?
+  noteId    String?
+  user      User?    @relation("UserSaves", fields: [userId], references: [id])
+  note      Note?    @relation(fields: [noteId], references: [id])
   createdAt DateTime @default(now())
 }
 
-// ------------------------------------------------------------
-// 🤖 AI ACTIVITY MODEL
-// ------------------------------------------------------------
+// 🤖 AI Activity Log
 model AiActivity {
-  id         String   @id @default(cuid())
-  user       User     @relation("UserAiActivity", fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
-  note       Note?    @relation("NoteAiActivity", fields: [noteId], references: [id], onDelete: SetNull)
-  noteId     String?
-  type       String
-  inputText  String?
-  outputText String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation("UserAiActivity", fields: [userId], references: [id])
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
 }
 
-// ------------------------------------------------------------
-// 🕒 STUDY SESSION MODEL
-// ------------------------------------------------------------
-model StudySession {
-  id          String   @id @default(cuid())
-  user        User     @relation("UserSessions", fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  durationMin Int
-  notesUsed   Int      @default(0)
-  focusScore  Float?
-  createdAt   DateTime @default(now())
-}
-
-// ------------------------------------------------------------
-// 🎙️ AUDIO NOTE MODEL
-// ------------------------------------------------------------
+// 🎙️ Audio Notes
 model AudioNote {
   id         String   @id @default(cuid())
   title      String?
   transcript String?
   audioUrl   String?
-  user       User     @relation("UserAudioNotes", fields: [userId], references: [id], onDelete: Cascade)
-  userId     String
+  userId     String?
+  user       User?    @relation("UserAudioNotes", fields: [userId], references: [id])
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+// 🧠 Study Sessions (Optional)
+model StudySession {
+  id        String   @id @default(cuid())
+  topic     String
+  duration  Int?
+  userId    String?
+  user      User?    @relation("UserSessions", fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

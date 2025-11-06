@@ -1,14 +1,18 @@
+// app/api/audio/list/route.ts
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
-export const GET = async () => {
+export const runtime = "nodejs";
+
+export async function GET() {
   try {
-    const audios = await prisma.audioNote.findMany({
+    const notes = await prisma.audioNote.findMany({
       orderBy: { createdAt: "desc" },
+      take: 50,
     });
-    return NextResponse.json(audios);
-  } catch (error) {
-    console.error("LIST ERROR:", error);
-    return NextResponse.json({ error: "Failed to fetch audios." }, { status: 500 });
+    return NextResponse.json({ notes });
+  } catch (err: any) {
+    console.error("Fetch audio notes error", err);
+    return NextResponse.json({ error: err?.message ?? "Failed to fetch" }, { status: 500 });
   }
-};
+}
