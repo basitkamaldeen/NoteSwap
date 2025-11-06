@@ -1,4 +1,4 @@
-import NoteEditor from "@/components/noteEditor";
+import NoteEditor from "@/components/NoteEditor";
 
 export default function DashboardNotePage({ params }: { params: { id: string } }) {
   const handleSave = async (content: string) => {
