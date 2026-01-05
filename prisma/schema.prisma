@@ -1,105 +1,63 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-model User {
-  id         String         @id @default(cuid())
-  name       String?
-  email      String?        @unique
-  avatar     String?
-  notes      Note[]         @relation("UserNotes")
-  folders    Folder[]       @relation("UserFolders")
-  likes      Like[]         @relation("UserLikes")
-  saves      Save[]         @relation("UserSaves")
-  aiActivity AiActivity[]   @relation("UserAiActivity")
-  audioNotes AudioNote[]    @relation("UserAudioNotes")
-  sessions   StudySession[] @relation("UserSessions")
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-}
-
-// ✏️ Notes
 model Note {
-  id        String   @id @default(cuid())
+  id         Int       @id @default(autoincrement())
+  title      String
+  content    String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  tags       NoteTag[]
+  favorites  Favorite[]
+  versions   Version[]
+  shareLinks ShareLink[]
+}
+
+model Tag {
+  id    Int       @id @default(autoincrement())
+  name  String    @unique
+  notes NoteTag[]
+}
+
+model NoteTag {
+  noteId Int
+  tagId  Int
+  note   Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  noteId    Int
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@unique([noteId, userId])
+}
+
+model ShareLink {
+  id        Int      @id @default(autoincrement())
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  noteId    Int
+  token     String   @unique
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model Version {
+  id        Int      @id @default(autoincrement())
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  noteId    Int
   title     String
   content   String?
-  folderId  String?
-  userId    String?
-  user      User?    @relation("UserNotes", fields: [userId], references: [id])
-  folder    Folder?  @relation(fields: [folderId], references: [id])
-  likes     Like[]
-  saves     Save[]
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// 📁 Folders
-model Folder {
-  id        String   @id @default(cuid())
-  name      String
-  userId    String?
-  user      User?    @relation("UserFolders", fields: [userId], references: [id])
-  notes     Note[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ❤️ Likes
-model Like {
-  id        String   @id @default(cuid())
-  userId    String?
-  noteId    String?
-  user      User?    @relation("UserLikes", fields: [userId], references: [id])
-  note      Note?    @relation(fields: [noteId], references: [id])
-  createdAt DateTime @default(now())
-}
-
-// 💾 Saves
-model Save {
-  id        String   @id @default(cuid())
-  userId    String?
-  noteId    String?
-  user      User?    @relation("UserSaves", fields: [userId], references: [id])
-  note      Note?    @relation(fields: [noteId], references: [id])
-  createdAt DateTime @default(now())
-}
-
-// 🤖 AI Activity Log
-model AiActivity {
-  id        String   @id @default(cuid())
-  userId    String?
-  user      User?    @relation("UserAiActivity", fields: [userId], references: [id])
-  action    String
-  details   String?
-  createdAt DateTime @default(now())
-}
-
-// 🎙️ Audio Notes
-model AudioNote {
-  id         String   @id @default(cuid())
-  title      String?
-  transcript String?
-  audioUrl   String?
-  userId     String?
-  user       User?    @relation("UserAudioNotes", fields: [userId], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-// 🧠 Study Sessions (Optional)
-model StudySession {
-  id        String   @id @default(cuid())
-  topic     String
-  duration  Int?
-  userId    String?
-  user      User?    @relation("UserSessions", fields: [userId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
