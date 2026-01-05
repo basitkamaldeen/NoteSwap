@@ -1,47 +1,48 @@
-import { auth } from "@clerk/nextjs/server";
-import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import { prisma } from '../../../lib/prisma';
 
-export async function GET() {
+export async function POST(request: Request) {
   try {
-    const { userId } = auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const body = await request.json();
+    const { title, content, tags } = body; // tags: string[]
 
-    const notes = await prisma.note.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
+    const note = await prisma.note.create({
+      data: { title: title ?? 'Untitled', content: content ?? '' },
     });
 
-    return NextResponse.json(notes);
-  } catch (error) {
-    console.error("[GET_NOTES_ERROR]", error);
-    return NextResponse.json({ error: "Failed to fetch notes" }, { status: 500 });
+    if (Array.isArray(tags) && tags.length > 0) {
+      for (const t of tags) {
+        const tag = await prisma.tag.upsert({
+          where: { name: t },
+          update: {},
+          create: { name: t },
+        });
+        await prisma.noteTag.create({
+          data: { noteId: note.id, tagId: tag.id },
+        });
+      }
+    }
+
+    return NextResponse.json(note);
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message ?? 'unknown' }, { status: 500 });
   }
 }
 
-export async function POST(req: Request) {
+export async function GET() {
   try {
-    const { userId } = auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { title, content, tags } = await req.json();
-
-    const note = await prisma.note.create({
-      data: {
-        title: title || "Untitled Note",
-        content: content || "",
-        tags: Array.isArray(tags) ? tags.join(",") : "",
-        userId,
-      },
+    const notes = await prisma.note.findMany({
+      include: { tags: { include: { tag: true } }, favorites: true },
+      orderBy: { updatedAt: 'desc' },
     });
-
-    return NextResponse.json(note);
-  } catch (error) {
-    console.error("[CREATE_NOTE_ERROR]", error);
-    return NextResponse.json({ error: "Failed to create note" }, { status: 500 });
+    // normalize tags
+    const normalized = notes.map((n) => ({
+      ...n,
+      tags: n.tags.map((nt) => nt.tag.name),
+      favoriteCount: n.favorites.length,
+    }));
+    return NextResponse.json(normalized);
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message ?? 'unknown' }, { status: 500 });
   }
 }
