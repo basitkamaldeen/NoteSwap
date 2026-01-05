@@ -1,16 +1,44 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '../../../lib/prisma';
 
 export async function GET() {
-  return NextResponse.json({ error: 'Tags API not implemented yet. Prisma schema/migrations pending.' }, { status: 501 });
+  try {
+    const tags = await prisma.tag.findMany({ orderBy: { name: 'asc' } });
+    return NextResponse.json(tags);
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message ?? 'unknown' }, { status: 500 });
+  }
 }
 
+/**
+ * POST payloads:
+ * - Create tags for a note: { noteId: number, tags: string[] }
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    // Expected shape: { noteId: string, tags: string[] }
-    // If DATABASE_URL and Prisma are configured, replace this stub with real DB logic.
-    return NextResponse.json({ message: 'Stub: received tags', received: body }, { status: 200 });
+    const { noteId, tags } = body;
+    if (!noteId || !Array.isArray(tags)) {
+      return NextResponse.json({ error: 'noteId and tags required' }, { status: 400 });
+    }
+
+    const created: any[] = [];
+    for (const t of tags) {
+      const tag = await prisma.tag.upsert({
+        where: { name: t },
+        update: {},
+        create: { name: t },
+      });
+      await prisma.noteTag.upsert({
+        where: { noteId_tagId: { noteId, tagId: tag.id } },
+        update: {},
+        create: { noteId, tagId: tag.id },
+      }).catch(() => {});
+      created.push(tag);
+    }
+
+    return NextResponse.json({ ok: true, created });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? 'unknown' }, { status: 400 });
+    return NextResponse.json({ error: err?.message ?? 'unknown' }, { status: 500 });
   }
 }
